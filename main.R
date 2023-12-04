@@ -1,8 +1,8 @@
 # Chain X->Z->Y
 library(dplyr)
 library(data.table)
-setwd("C:/Users/Jacek/Desktop/Symulacje Magisterka")
-source("functions.R")
+#setwd("C:/Users/Jacek/Desktop/Symulacje Magisterka")
+source("./structs/functions.R")
 n = 3
 d = 4
 NodeNames = LETTERS[1:d]
@@ -46,25 +46,12 @@ Trans_prob = function(Nodenames, ParentStructure, n, d) {
 }
 TransitionProbabilities = Trans_prob(Nodenames, ParentStructure, n, d)
 
-TransitionProbabilities[["Z"]]
+TransitionProbabilities[["A"]]
 
 #########################################
 #Macierz przejśćia
 
-trans_matrix = function(n, d) {
-  Trans = expand.grid(rep(list(0:c(n - 1)), 2 * d))
-  colnames(Trans) = c(paste(NodeNames, "(t)", sep = ""),
-                      paste(NodeNames, "(t-1)", sep = ""))
-  Trans['prob'] = apply(Trans, 1, function(x)
-    prob_transition(x))
-  Trans2 = matrix(
-    as.vector(Trans['prob'])$prob,
-    ncol = n ^ d,
-    nrow = n ^ d,
-    byrow = TRUE
-  )
-  return(Trans2)
-}
+
 
 start = Sys.time()
 Trans = trans_matrix(n, d)
@@ -94,7 +81,7 @@ res_statio
 #TransitionProbabilities[[2]]=c(0.1,0.1,0.9,0.9)
 #TransitionProbabilities[[3]]=c(0.1,0.1,0.9,0.9)
 
-m = 10 ^ 3
+m = 10 ^ 4
 XZY = matrix(nrow = m, ncol = d)
 colnames(XZY) = NodeNames
 State = rep(0, d)
