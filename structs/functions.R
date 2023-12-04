@@ -14,33 +14,23 @@ Step = function(State) {
   }
   return(NewState)
 }
-# Switch between binary expansion and usual (decimal) representation of integers
-#
-# Binary expansion of number x (sequence of l digits)
-Dec2Bin = function(x, l)
-{
-  cyfra = 1
-  b = rep(0, l)
-  
-  while (x > 1) {
-    r = x %% 2
-    x = x %/% 2
-    b[cyfra] = r
-    cyfra = cyfra + 1
-  }
-  b[cyfra] = x
-  b = rev(b)
-  return(b)
+
+#calculate transition matrix
+trans_matrix = function(n, d) {
+  Trans = expand.grid(rep(list(0:c(n - 1)), 2 * d))
+  colnames(Trans) = c(paste(NodeNames, "(t)", sep = ""),
+                      paste(NodeNames, "(t-1)", sep = ""))
+  Trans['prob'] = apply(Trans, 1, function(x)
+    prob_transition(x))
+  Trans2 = matrix(
+    as.vector(Trans['prob'])$prob,
+    ncol = n ^ d,
+    nrow = n ^ d,
+    byrow = TRUE
+  )
+  return(Trans2)
 }
 
-# Convert a sequence b of 0/1 to a number
-Bin2Dec <- function(b)
-{
-  l = length(b)
-  b = rev(b)
-  x = sum(b * 2 ^ (1:l - 1))
-  return(x)
-}
 
 #calculate transition probability for given configuration
 
