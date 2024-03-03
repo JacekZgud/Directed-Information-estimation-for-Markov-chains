@@ -2,12 +2,9 @@
 library(dplyr)
 library(data.table)
 source("./structs/functions.R")
-
-
-
 n = 2
 d = 3
-
+set.seed(1)
 #define relation structure
 ParentStructure = matrix(nrow = d, ncol = d, data = 0)
 diag(ParentStructure) = 1
@@ -18,11 +15,8 @@ ParentStructure[3, 1] = 1
 #ParentStructure[3,2] = 1
 NoParents = rowSums(ParentStructure)
 
-
+#initalize class for markov_simulations
 process = proc_init(n,d,ParentStructure)
-
-
-
 
 process@trans_prob
 
@@ -30,11 +24,11 @@ process@trans_prob
 #transition matrix
 #takes some time to calculate, approx 30 sec for n=3 and d=4. 
 
-
 attr(process,"trans_matrix") = trans_matrix(process)
 attr(process,"statio_prob") = stationary_probability(process)
 
-process@statio_prob
+sum(process@statio_prob[process@statio_prob["X"]==1,]["statio_prob"])
+sum(process@statio_prob[process@statio_prob["X"]==0,]["statio_prob"])
 
 #######
 #markov process simulation

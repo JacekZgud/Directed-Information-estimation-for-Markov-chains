@@ -57,12 +57,13 @@ Trans_prob = function(Nodenames, ParentStructure, n, d) {
 # One step of Markov Chain
 #
 Step = function(State, TransitionProbabilities,names,ParentStructure) {
-  NewState = c()
-  prob_columns = paste("prob", c(1:(n - 1)), sep = "_")
+  NewState = numeric()
+  prob_columns = paste("prob", 1:(n - 1), sep = "_")
   for (vertex in names) {
     Parents = (ParentStructure[vertex, ] == 1)
     ParentState = State[Parents]
-    Prob = TransitionProbabilities[[vertex]][as.list(ParentState), ..prob_columns]
+    Prob = TransitionProbabilities[[vertex]]
+    Prob = Prob[as.list(ParentState), ..prob_columns]
     NewState[vertex] = sum(runif(1) > cumsum(as.vector(Prob)))
   }
   return(NewState)
@@ -78,6 +79,7 @@ markov_sim = function(obj,m) {
   for (i in 1:m) {
     State = Step(State, obj@trans_prob,obj@node_names,obj@parent_struct)
     XZY[i,] = State
+    print_progress(i,m)
   }
   return(XZY)
 }
@@ -135,4 +137,23 @@ stationary_probability = function(obj) {
   return(res_statio)
 }
 
+#visuals
+print_progress <- function(iteration, total) {
+  percent_complete <- round((iteration / total) * 100 / 5)
+  cat(
+    "\r[",
+    paste(rep("=", percent_complete), collapse = ""),
+    paste(rep(" ", 20 - percent_complete), collapse = ""),
+    "] ",
+    percent_complete * 5,
+    "%",
+    " (",
+    iteration,
+    "/",
+    total,
+    ")",
+    sep = ""
+  )
+  flush.console()
+}
 
