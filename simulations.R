@@ -1,51 +1,58 @@
 # Chain X->Z->Y
 library(dplyr)
 library(data.table)
-#setwd("C:/Users/Jacek/Desktop/Symulacje Magisterka")
 source("./structs/functions.R")
-n = 3
-d = 4
-#set vertices names
-NodeNames = LETTERS[1:d]
+
+
+
+n = 2
+d = 3
 
 #define relation structure
 ParentStructure = matrix(nrow = d, ncol = d, data = 0)
 diag(ParentStructure) = 1
-rownames(ParentStructure) = colnames(ParentStructure) = NodeNames
-ParentStructure[2, 1] = 1
-ParentStructure[2, 4] = 1
+rownames(ParentStructure) = colnames(ParentStructure) = tail(LETTERS,d)
+ParentStructure[2, 3] = 1
+ParentStructure[3, 1] = 1
 #ParentStructure[2,5] = 1
 #ParentStructure[3,2] = 1
-
 NoParents = rowSums(ParentStructure)
 
-TransitionProbabilities = Trans_prob(Nodenames, ParentStructure, n, d)
 
-TransitionProbabilities[["A"]]
+process = proc_init(n,d,ParentStructure)
+
+
+
+
+process@trans_prob
 
 #########################################
 #transition matrix
 #takes some time to calculate, approx 30 sec for n=3 and d=4. 
 
 
-Trans = trans_matrix(n, d)
-stationary_probability(Trans,n,d)
+attr(process,"trans_matrix") = trans_matrix(process)
+attr(process,"statio_prob") = stationary_probability(process)
 
-
+process@statio_prob
 
 #######
-#markov process symulation
+#markov process simulation
+m=10^3
+attr(process,"simulation_trial") = markov_sim(process,m)
 
-XZY = markov_sim(TransitionProbabilities,10^3,d,n)
 
-X = XZY[, "A"]
-Z = XZY[, "B"]
-Y = XZY[, "C"]
+process@simulation_trial
+
+X = process@simulation_trial[,"X"]
+Z = process@simulation_trial[,"Z"]
+Y = process@simulation_trial[,"Y"]
 
 hist(X)
+
 # Stationary distribution of X
 table(X) / m
-PX = c(1 - TransitionProbabilities$X[2, "prob1"], TransitionProbabilities$X[1, "prob1"])
+PX = c(1 - process@trans_prob$X[2, "prob_1"], process@trans_prob$X[1, "prob_1"])
 piX = PX / sum(PX)
 piX
 
@@ -64,3 +71,4 @@ XY. = table(X, Y)
 XY.
 mosaicplot(XY.)
 chisq.test(XY.)$expected
+
