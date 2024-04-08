@@ -1,15 +1,16 @@
-# This file contains all functions needed to calculate stationary distribution i.e. 
+# This file contains all functions needed to calculate stationary distribution i.e.
 # - trans_matrix()
 # - prob_transition()
 # - stationary_probability()
 
 
-trans_matrix = function(obj) {
+trans_matrix = function(obj, list_form = FALSE) {
   "
   Calculates transition matrix for markov process
   ----------
   Arguments:
     obj - markov_process object
+    list_form - whether transition matrix should be returned as a list or matrix
   Returns:
     transition matrix
   "
@@ -21,12 +22,18 @@ trans_matrix = function(obj) {
                       paste(obj@node_names, "(t-1)", sep = ""))
   Trans['prob'] = apply(Trans, 1, function(x)
     prob_transition(x, names, obj@parent_struct, obj@trans_prob))
-  return(matrix(
-    as.vector(Trans['prob'])$prob,
-    ncol = n ^ d,
-    nrow = n ^ d,
-    byrow = TRUE
-  ))
+  if (list_form) {
+    return(Trans)
+  }
+  else{
+    return(matrix(
+      as.vector(Trans['prob'])$prob,
+      ncol = n ^ d,
+      nrow = n ^ d,
+      byrow = TRUE
+    ))
+  }
+  
 }
 #calculate transition probability for given configuration
 
@@ -45,7 +52,7 @@ prob_transition = function(x,
   "
   vec = c()
   for (node in names) {
-    parents = names[which(ParentStructure[node,] == 1)]
+    parents = names[which(ParentStructure[node, ] == 1)]
     Parents = paste(parents, "(t-1)", sep = "")
     
     ParentState = x[Parents]
