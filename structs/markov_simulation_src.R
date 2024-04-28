@@ -52,7 +52,6 @@ Step = function(State,
     ParentState = State[Parents]
     Prob = TransitionProbabilities[[vertex]]
     Prob = Prob[as.list(ParentState), ..prob_columns]
-    #NewState[vertex] = sum(runif(1) < cumsum(as.vector(Prob)))
     NewState[vertex] =  sample.int(n, 1, prob = Prob) - 1
   }
   return(NewState)

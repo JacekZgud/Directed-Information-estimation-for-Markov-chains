@@ -1,4 +1,4 @@
-#define class  markov_process
+# define class  markov_process
 setClassUnion("arrayORmatrix", c("matrix", "array"))
 
 
@@ -26,7 +26,12 @@ setClass(
     trans_matrix_list = data.frame()
   )
 )
-proc_init <- function(n, d, parent_struct) {
+
+markov_process_init <- function(n = 1,
+                                d = 1,
+                                parent_struct = NULL,
+                                nod_names = c("X"),
+                                trans_probs = NULL) {
   "
   Define markov process class
   -------------------------
@@ -34,26 +39,41 @@ proc_init <- function(n, d, parent_struct) {
     n - number of states
     d - number of vertices
     parent_struct - (d x d) matrix defining parental relations where rows represent parents
+    nod_names - vector of names for vertices
+    trans_probs - transition probabilities
   Returns:
     markov process class
   "
-  NodeNames = tail(LETTERS, d)
-  TransitionProbabilities = Trans_prob(NodeNames, parent_struct, n, d)
-  prob_col = paste("prob", c(0:(n-1)), sep = "_")
-  out = new(
-    "markov_process",
-    dim_num = n,
-    node_num = d,
-    node_names = c(NodeNames),
-    parent_struct = parent_struct,
-    trans_prob = TransitionProbabilities,
-    prob_cols = c(prob_col)
-  )
+  NodeNames = nod_names
+  prob_col = paste("prob", c(0:(n - 1)), sep = "_")
+  if (is.null(trans_probs)) {
+    trans_probs = Trans_prob(NodeNames, parent_struct, n, d)
+  }
+  if (is.null(parent_struct)) {
+    parent_struct = matrix(nrow = d,
+                           ncol = d,
+                           data = 0)
+    diag(parent_struct) = 1
+    rownames(parent_struct) = colnames(parent_struct) = NodeNames
+    
+  }
   return(
-    out
+    new(
+      "markov_process",
+      dim_num = n,
+      node_num = d,
+      node_names = c(NodeNames),
+      parent_struct = parent_struct,
+      trans_prob = trans_probs,
+      prob_cols = c(prob_col)
+    )
   )
-  
 }
+
+
+
+
+
 
 # define structure for markov chain
 

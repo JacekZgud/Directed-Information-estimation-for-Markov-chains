@@ -24,4 +24,5 @@ prawd stacjonarne do przeglądniecia, na zmiane warunek?
 przegląd repozytorów za danymi
 co najmniej dwuwymiarowe
 
+napisać funkcję puszczającą symulację dla pewnego parametru z rozkładu i liczącą transfer entropy. Zob skrypt z monocausal. 
 
