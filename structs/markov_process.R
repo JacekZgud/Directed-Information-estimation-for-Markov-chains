@@ -12,7 +12,10 @@ setClass(
     parent_struct = "arrayORmatrix",
     trans_prob = "list",
     trans_matrix = "ANY",
-    trans_matrix_list = "data.frame"
+    trans_matrix_list = "data.frame",
+    marg_sim = 'list',
+    statio_prob = 'data.frame',
+    simulation = 'ANY'
   )
   ,
   prototype = c(
@@ -23,8 +26,11 @@ setClass(
     parent_struct = matrix(),
     trans_prob = list(),
     trans_matrix = matrix(),
-    trans_matrix_list = data.frame()
-  )
+    trans_matrix_list = data.frame(),
+    marg_sim = vector('list'),
+    statio_prob = data.frame(),
+    simulation = c()
+    )
 )
 
 markov_process_init <- function(n = 1,
@@ -46,9 +52,6 @@ markov_process_init <- function(n = 1,
   "
   NodeNames = nod_names
   prob_col = paste("prob", c(0:(n - 1)), sep = "_")
-  if (is.null(trans_probs)) {
-    trans_probs = Trans_prob(NodeNames, parent_struct, n, d)
-  }
   if (is.null(parent_struct)) {
     parent_struct = matrix(nrow = d,
                            ncol = d,
@@ -56,6 +59,9 @@ markov_process_init <- function(n = 1,
     diag(parent_struct) = 1
     rownames(parent_struct) = colnames(parent_struct) = NodeNames
     
+  }
+  if (is.null(trans_probs)) {
+    trans_probs = Trans_prob(NodeNames, parent_struct, n, d)
   }
   return(
     new(
@@ -95,21 +101,70 @@ Trans_prob = function(Nodenames, parent_struct, n, d) {
   prob_vector_names = paste("prob", c(0:(n - 1)), sep = '_')
   NoParents = rowSums(parent_struct)
   for (node in Nodenames) {
-    parents = Nodenames[which(parent_struct[node, ] == 1)]
+    parents = Nodenames[which(parent_struct[node,] == 1)]
     n0_parents = NoParents[parents]
     temp = expand.grid(rep(list(0:c(n - 1)), length(n0_parents)))
     colnames(temp) = parents
-    prob_matr = matrix(
-      runif(n * nrow(temp)),
-      nrow = nrow(temp),
-      ncol = n,
-      byrow = TRUE
-    )
-    colnames(prob_matr) = prob_vector_names
-    prob_matr = t(apply(prob_matr, 1, function(x)
-      x / sum(x)))
-    TransitionProbabilities[[node]] = data.table(cbind(temp, prob_matr))
-    setkeyv(TransitionProbabilities[[node]], parents)
+    
+    if(NoParents[[node]] !=0){
+      prob_matr = matrix(
+        runif(n * nrow(temp)),
+        nrow = nrow(temp),
+        ncol = n,
+        byrow = TRUE
+      )
+      colnames(prob_matr) = prob_vector_names
+      prob_matr = t(apply(prob_matr, 1, function(x)
+        x / sum(x)))
+      TransitionProbabilities[[node]] = data.table(cbind(temp, prob_matr))
+      setkeyv(TransitionProbabilities[[node]], parents)
+    }
+    else{
+      prob_matr = matrix(
+        runif(n),
+        nrow = 1,
+        ncol = n,
+        byrow = TRUE
+      )
+      colnames(prob_matr) = prob_vector_names
+      prob_matr = t(apply(prob_matr, 1, function(x)
+        x / sum(x)))
+      TransitionProbabilities[[node]] = data.table( prob_matr)
+      
+    }
   }
   return(TransitionProbabilities)
+}
+
+
+marginalized_runner <- function(obj, target = c(obj@node_names[1]), n_2) {
+  if (nrow(obj@trans_matrix_list)==0){
+    obj@trans_matrix_list = trans_matrix(obj, list_form = TRUE)
+  }
+  if (nrow(obj@statio_prob)==0){
+    obj@statio_prob = stationary_probability(obj)
+  }
+  
+  obj@marg_sim = markov_sim_Y(obj, n_2, target)
+  cat('\n','DONE')
+  
+  for (i in target) {
+    print(table(obj@marg_sim$sim_target[, i])/n_2)
+    print(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
+  }
+  return(obj)
+}
+
+simulation_runner <- function(obj, m) {
+  if (nrow(obj@statio_prob)==0)
+    obj@statio_prob = stationary_probability(obj)
+  
+  obj@simulation = markov_sim(obj, m)
+  cat('\n','DONE','\n')
+  
+  for (i in obj@node_names) {
+    print(table(obj@simulation[, i])/m)
+    print(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
+  }
+  return(obj)
 }

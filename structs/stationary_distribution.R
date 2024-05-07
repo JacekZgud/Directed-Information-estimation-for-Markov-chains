@@ -14,14 +14,16 @@ trans_matrix = function(obj, list_form = FALSE) {
   Returns:
     transition matrix
   "
+  cat('calculating transition matrix...')
+  
   n = obj@dim_num
   d = obj@node_num
-  names = obj@node_names
   Trans = expand.grid(rep(list(0:c(n - 1)), 2 * d))
   colnames(Trans) = c(paste(obj@node_names, "(t)", sep = ""),
                       paste(obj@node_names, "(t-1)", sep = ""))
   Trans['prob'] = apply(Trans, 1, function(x)
-    prob_transition(x, names, obj@parent_struct, obj@trans_prob))
+    prob_transition(x, obj@node_names, obj@parent_struct, obj@trans_prob))
+  cat('DONE','\n')
   if (list_form) {
     return(Trans)
   }
@@ -54,14 +56,16 @@ prob_transition = function(x,
   for (node in names) {
     parents = names[which(ParentStructure[node, ] == 1)]
     Parents = paste(parents, "(t-1)", sep = "")
-    
     ParentState = x[Parents]
     node_state = as.double(x[paste(node, "(t)", sep = "")])
     prob_col = paste("prob", node_state, sep = "_")
-    prob = setDT(TransitionProbabilities[[node]])[as.list(ParentState), ..prob_col]
-    vec[node] = as.double(prob)
+    if(length(parents)>0){
+      prob = setDT(TransitionProbabilities[[node]])[as.list(ParentState), ..prob_col]
+      vec[node] = as.double(prob)
+
+    }
+    else vec[node] = as.double(setDT(TransitionProbabilities[[node]])[,..prob_col])
   }
-  
   return(as.double(prod(vec)))
   
 }
@@ -75,9 +79,13 @@ stationary_probability = function(obj) {
   Returns:
     stationary distribution
   "
-  n = process@dim_num
-  d = process@node_num
-  A = t(process@trans_matrix - diag(ncol = n ^ d, nrow = n ^ d))
+  if (is.null(nrow(obj@trans_matrix))){
+    obj@trans_matrix = trans_matrix(obj)
+  }
+  
+  n = obj@dim_num
+  d = obj@node_num
+  A = t(obj@trans_matrix - diag(ncol = n ^ d, nrow = n ^ d))
   A = rbind(A, rep(1, n ^ d))
   b = c(rep(0, n ^ d), 1)
   res_statio = qr.solve(A, b)

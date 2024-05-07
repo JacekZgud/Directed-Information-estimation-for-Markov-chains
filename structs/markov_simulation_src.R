@@ -21,20 +21,14 @@ markov_sim = function(obj, m) {
   XZY = matrix(nrow = m, ncol = obj@node_num)
   colnames(XZY) = obj@node_names
   State = rep(0, obj@node_num)
-  for (i in 1:m) {
-    State = Step(State, obj@trans_prob, obj@node_names, obj@parent_struct)
-    XZY[i,] = State
-    print_progress(i, m, timer)
-  }
-  return(XZY)
-}
-
-
-Step = function(State,
-                TransitionProbabilities,
-                names,
-                ParentStructure) {
-  "
+  n=obj@dim_num
+  prob_columns = paste("prob", 0:( n- 1), sep = "_")
+  
+  Step = function(State,
+                  TransitionProbabilities,
+                  node_names,
+                  ParentStructure) {
+    "
   Calculate step for markov simulation, that is simulate process for time t given t-1 state.
   -----------------
   Arguments:
@@ -45,14 +39,24 @@ Step = function(State,
   Returns:
     simulated realization of t time process
   "
-  NewState = numeric()
-  prob_columns = paste("prob", 0:(n - 1), sep = "_")
-  for (vertex in names) {
-    Parents = (ParentStructure[vertex, ] == 1)
-    ParentState = State[Parents]
-    Prob = TransitionProbabilities[[vertex]]
-    Prob = Prob[as.list(ParentState), ..prob_columns]
-    NewState[vertex] =  sample.int(n, 1, prob = Prob) - 1
+    NewState = numeric()
+    for (vertex in node_names) {
+      Parents = (ParentStructure[vertex, ] == 1)
+      ParentState = State[Parents]
+      Prob = TransitionProbabilities[[vertex]]
+      if(as.double(sum(Parents)) > 0) Prob = Prob[as.list(ParentState), ..prob_columns]
+      else Prob = Prob[, ..prob_columns]
+      NewState[vertex] =  sample.int(n, 1, prob = Prob) - 1
+    }
+    return(NewState)
   }
-  return(NewState)
+  
+  for (i in 1:m) {
+    State = Step(State, obj@trans_prob, obj@node_names, obj@parent_struct)
+    XZY[i,] = State
+    print_progress(i, m, timer)
+  }
+  return(XZY)
 }
+
+
