@@ -34,3 +34,4 @@ info_estimator = function(a,par_struct){
 }
 Vectorize(info_estimator,'a')(a=prob,ParentStructure)
 
+info_estimator(2/3,ParentStructure)

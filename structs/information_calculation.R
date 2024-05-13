@@ -24,26 +24,24 @@ trans_entropy = function(obj,
                          cond = NULL,
                          n_2 = 1000) {
   "
-  obj - 'markov_process' class object
-  "
+    obj - 'markov_process' class object
+    "
   if ((length(obj@marg_sim) == 0) |
       (length(setdiff(obj@marg_sim$target_name, target) > 0) |
        length(setdiff(target, obj@marg_sim$target_name) > 0))) {
     obj =  marginalized_runner(obj, target, n_2)
   }
   target = obj@marg_sim$target_name
-  origin = setdiff(obj@node_names, target)
-  origin_prob = data.table(obj@statio_prob)[, sum(statio_prob), keyby =
-                                              eval(c(obj@node_names))]
-  
   target_parent_nodes = vector('list')
   nodes_not_parent = vector('list')
   nodes_without_target_vector = setdiff(obj@node_names, target)
   for (i in target) {
-    target_parent_nodes[[i]] = names(which(obj@parent_struct[i, ] == 1))
+    target_parent_nodes[[i]] = names(which(obj@parent_struct[i,] == 1))
     
     nodes_not_parent[[i]] = setdiff(obj@node_names, target_parent_nodes[[i]])
   }
+  origin_prob = data.table(obj@statio_prob)[, sum(statio_prob), keyby =
+                                              eval(c(obj@node_names))]
   prob_cols = obj@prob_cols
   
   Py = vector('list')
@@ -57,16 +55,23 @@ trans_entropy = function(obj,
       colnames(conf) = nodes_not_parent[[i]]
       Py[[i]] = data.table(merge(conf, Py[[i]]))
     }
-    ordering = c(obj@node_names,prob_cols)
-    Py[[i]] = Py[[i]][,..ordering]
+    ordering = c(obj@node_names, prob_cols)
+    Py[[i]] = Py[[i]][, ..ordering]
     setkeyv(Py[[i]], obj@node_names)
     entropies_Py = entropies_Py + apply(data.frame(Py[[i]])[, prob_cols], 1, entropy) # by conditional independence of target
   }
+  column_names = c(paste(target, c(
+    rep("(t)", length(target)), rep("(t-1)", length(target))
+  ), sep = ""),
+  paste(nodes_without_target_vector, "(t-1)", sep = ""))
   
-  print(Py)
-  print(origin_prob)
+  P_target = setDT(obj@trans_matrix_list)[, sum(prob), by = column_names]
+  colnames(P_target) = c(column_names, 'prob')
+  setkeyv(P_target, paste(target, rep("(t-1)", length(target)), sep =""))
+  print(sum(P_target[,entropy(prob),keyby=c(paste(obj@node_names,'(t-1)',sep=""))]$V1*origin_prob$V1))
+  
   target_entropy = sum(entropies_Py * origin_prob$V1)
-  print(target_entropy)  
+  print(target_entropy)
   
   mt = data.table(obj@marg_sim$mt)
   ft = data.table(obj@marg_sim$ft)
@@ -80,26 +85,30 @@ trans_entropy = function(obj,
   time = Sys.time()
   
   get_value = function(i) {
-    y = as.vector(ys[i, ])
+    y = as.vector(ys[i,])
     j = i + length(target)
     print_progress(i, end, time)
     mt[as.list(c(y)), ..j]
   }
   saver = Vectorize(get_value)(c(1:nrow(ys)))
-  #time = Sys.time()
-  #for (i in 1:n) {
-  #  y = as.vector(ys[i, ])
-  #  j = i + length(target)
-  #  saver[i] = mt[as.list(c(y)), ..j]
-  #  print_progress(i, n, time)
-  #}
   cat('\nDONE\n')
-  probs = cumprod(as.vector(saver))
-  print(probs[c(1:10)])
-  entropy_only_target = apply(mt[,-..target], 2, entropy)
+  
+  #probs = cumprod(as.vector(saver))
+  probs=as.vector(unlist(saver[-1]))
+  probs2=unlist(saver[-length(saver)])*as.vector(unlist(saver[-1]))
+  
+  entropy_only_target = apply(mt[, -..target], 2, entropy)
   #print(entropy_only_target)
-  subset = c(100:length(entropy_only_target))
-  attr(obj, 'trans_entropy') = sum(entropy_only_target[subset] * probs[subset]) / sum(probs[subset]) - target_entropy
+  subset = c(3:(length(entropy_only_target)))
+  subset2 = c(3:(length(entropy_only_target)))
+  
+  hist(entropy_only_target[-1])
+  abline(v=target_entropy,col='red')
+  abline(v=sum(entropy_only_target[subset] * probs) / sum(probs),col='green')
+  abline(v=sum(entropy_only_target[subset2] * probs2[-1]) / sum(probs2[-1]),col='cyan')
+  
+  attr(obj, 'trans_entropy') = sum(entropy_only_target[subset] * probs[-1]) / sum(probs[-1]) - target_entropy
+  
   cat(
     '\nTarget:',
     target,
@@ -108,13 +117,16 @@ trans_entropy = function(obj,
     nodes_without_target_vector,
     '\n',
     'Transfer_entropy:',
-    sum(entropy_only_target * probs)/sum(probs) - target_entropy,
+    obj@trans_entropy,
     '\n'
   )
   return(obj)
 }
-n_2=10000
-process = trans_entropy(process, c('X'), n_2 = 10000)
+n_2 = 100
+process = trans_entropy(process, c('X'), n_2 = 1000)
+#colmn = process@prob_cols
+#sum(apply(setDT(process@trans_prob[['Y']])[,..colmn],1,entropy)*setDT(process@statio_prob)[,sum(statio_prob),keyby=c('Y','Z')]$V1)
+#sum(apply(setDT(process@trans_prob[['Z']])[,..colmn],1,entropy)*setDT(process@statio_prob)[,sum(statio_prob),keyby=c('Y','Z')]$V1)
 #process@trans_prob
 # dla mt liczymy końcowo uśrednionie przez prawdopodobienstwo trajektorii
 # rozpisać na współrzędne wzorek o liczeniu informacji wzajemnej pod warunkiem cąłości historii

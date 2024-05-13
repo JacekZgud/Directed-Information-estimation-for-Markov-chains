@@ -30,39 +30,26 @@ markov_sim_Y <- function(obj,
   nodes_without_target = vector('list')
   nodes_not_parent = vector('list')
   nodes_without_target_vector = setdiff(obj@node_names, target)
-  for (i in target) {
-    target_parent_nodes[[i]] = names(which(obj@parent_struct[i, ] == 1))
-    parent_without_target[[i]] = setdiff(target_parent_nodes[[i]], i)
-    nodes_without_target[[i]] = setdiff(obj@node_names, i)
-    nodes_not_parent[[i]] = setdiff(obj@node_names, target_parent_nodes[[i]])
-  }
   prob_cols = obj@prob_cols
   if (is.null(condition_set)) {
     #######################################
     # preparation of relevant distributions
     
-    Py = vector('list')
-    for (i in target) {
-      Py[[i]] = obj@trans_prob[[i]]
-      
-      if (!(length(nodes_not_parent[[i]]) == 0)) {
-        conf = expand.grid(rep(list(0:c(
-          obj@dim_num - 1
-        )), length(nodes_not_parent[[i]])))
-        colnames(conf) = nodes_not_parent[[i]]
-        Py[[i]] = data.table(merge(conf, Py[[i]]))
-      }
-      ordering = c(target, nodes_without_target_vector,prob_cols)
-      Py[[i]] = Py[[i]][,..ordering]
-      setkeyv(Py[[i]], c(target, nodes_without_target_vector))
-    }
-    
-    if (nrow(obj@trans_matrix_list) == 0){
+    if (nrow(obj@trans_matrix_list) == 0) {
       P = setDT(trans_matrix(obj, list_form = TRUE))
     }
     else{
       P = setDT(obj@trans_matrix_list)
     }
+    
+    column_names = c(paste(target, c(
+      rep("(t)", length(target)), rep("(t-1)", length(target))
+    ), sep = ""),
+    paste(nodes_without_target_vector, "(t-1)", sep = ""))
+    P_target = P[, sum(prob), by = column_names]
+    colnames(P_target) = c(column_names, 'prob')
+    setkeyv(P_target, paste(target, rep("(t-1)", length(target)), sep =
+                              ""))
     
     setkeyv(P, c(
       paste(target, c(
@@ -81,9 +68,7 @@ markov_sim_Y <- function(obj,
     fty$target = rep(0, length(target))  # y(t)
     names(fty$target) = target
     #ft
-    configs = expand.grid(rep(list(0:c(
-      obj@dim_num - 1
-    )), length(nodes_without_target_vector)))
+    configs = expand.grid(rep(list(0:c(obj@dim_num - 1)), length(nodes_without_target_vector)))
     colnames(configs) = nodes_without_target_vector
     values = matrix(runif(nrow(configs)),
                     ncol = 1,
@@ -95,15 +80,15 @@ markov_sim_Y <- function(obj,
     setkeyv(fty$ft, nodes_without_target_vector)
     fty$ft = data.frame(fty$ft)
     #mt
-    fty$mt = expand.grid(rep(list(0:c(
-      obj@dim_num - 1
-    )), length(target)))
+    fty$mt = expand.grid(rep(list(0:c(obj@dim_num - 1)), length(target)))
     colnames(fty$mt) = target    #P(Y(t+1) |Y(t)=y,Y(<t))
     values = matrix(0,
                     ncol = 1,
                     nrow = nrow(fty$mt))
     colnames(values) = "prob"
     fty$mt['prob'] = values
+    fty$mt = as.data.table(fty$mt)
+    setkeyv(fty$mt, target)
     
     ########################################
     # preparation for memory vectors
@@ -116,12 +101,15 @@ markov_sim_Y <- function(obj,
     
     Mts = matrix(NA, ncol = n, nrow = nrow(fty$mt)) # estimates of mt
     colnames(Mts) = as.character(1:n)
-    Mts = cbind(fty$mt[, target], Mts)
+    Mts = cbind(as.data.frame(fty$mt[, ..target]), Mts)
     
     #setup for timer
     timer = Sys.time()
-    cat(' DONE','\n')
+    cat(' DONE', '\n')
     
+    
+    #work
+    target_cols = paste(target, '(t)', sep = "")
     stepY <- function(fr, Py, P, configs, target, prob_cols) {
       "
       Simulate step of markov obj with marginalized variables without conditioning
@@ -136,28 +124,16 @@ markov_sim_Y <- function(obj,
       "
       y = fr$target
       ft = fr$ft # probability of P(X(t) |Y(t)=y,Y(<t)): probs of configurations of X
-      mt = fr$mt[target] # P(Y(t+1)|Y(t)=y,Y(<t)): vector of length n
+      mt = fr$mt[, ..target] # P(Y(t+1)|Y(t)=y,Y(<t)): vector of length n
       Y = y
       
-      work_mt = mt
-      for (var in target) {
-        #setkeyv(ft,)
-
-        temp = data.frame(work = c(0:(length(prob_cols) - 1)),
-                          prob = as.vector(apply(Py[[var]][as.list(y),
-                                                           ..prob_cols] * ft$prob, 2, sum)))
-        colnames(temp) = c(var, 'prob')
-        Y[var] = sample.int(length(prob_cols), 1, prob = temp[['prob']]) - 1
-        work_mt = setDT(work_mt)[temp, on = eval(var)]
-      }
-      mt[, 'prob'] = apply(work_mt[, !..target], 1, prod)
-      mt = data.frame(mt)
-      ft_1 = P[as.list(c(Y, y)), sum(prob * ft$prob), by = eval(paste(configs, "(t)", sep =
-                                                                        ""))]
-      #print(ft_1)
+      work = P_target[as.list(y), sum(prob * ft$prob), keyby = eval(target_cols)]
+      index = sample.int(nrow(work), 1, prob = work$V1)
+      mt[, 'prob'] = work$V1
+      Y = unlist(as.vector(work[index, ..target_cols]))
+      ft_1 = P[as.list(c(Y, y)), sum(prob * ft$prob), by = eval(paste(configs, "(t)", sep =""))]
       colnames(ft_1) = c(configs, "prob")
       ft$prob = ft_1$prob / sum(ft_1$prob)
-      
       
       fr$target = Y
       fr$ft = ft
@@ -173,13 +149,13 @@ markov_sim_Y <- function(obj,
                   nodes_without_target_vector ,
                   target,
                   prob_cols)
-      Ys[t, ] = fty$target
+      Ys[t,] = fty$target
       Fts[, as.character(t)] = fty$ft$prob
       Mts[, as.character(t)] = fty$mt$prob
       print_progress(t, n, timer)
       
     }
-    cat('\n','DONE')
+    cat('\n', 'DONE')
     
   }
   else{
@@ -208,4 +184,7 @@ markov_sim_Y <- function(obj,
   return(out)
 }
 
-
+#process = marginalized_runner(process, c('Y','X'), 1000)
+#50/10000
+##process@marg_sim$ft
+#process@trans_prob
