@@ -108,7 +108,7 @@ Trans_prob = function(Nodenames, parent_struct, n, d) {
     
     if(NoParents[[node]] !=0){
       prob_matr = matrix(
-        runif(n * nrow(temp)),
+        sample.int(10^3,n * nrow(temp)),
         nrow = nrow(temp),
         ncol = n,
         byrow = TRUE

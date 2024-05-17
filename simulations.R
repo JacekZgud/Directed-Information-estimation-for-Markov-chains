@@ -6,7 +6,7 @@ source("./structs/stationary_distribution.R")
 source("./structs/markov_simulation_src.R")
 source("./structs/simulation_marginalized.R")
 source('./structs/information_calculation.R')
-node_dim = 2
+node_dim = 3
 nodes = 3
 set.seed(1)
 #define parent structure
@@ -90,10 +90,10 @@ chisq.test(XY.)$expected
 # simulate marginalized markov process
 n_2 = 10 ^ 3
 
-process = marginalized_runner(process, c('Y'), n_2)
+process = marginalized_runner(process, c('Y','Z'), n_2)
 
 process@trans_prob
-process = trans_entropy(process, c('Z','Y'), n_2=n_2)
+process = trans_entropy(process, c('Y','Z'), n_2=1000)
 
 process@trans_prob
 

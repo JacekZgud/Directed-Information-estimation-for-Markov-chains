@@ -65,7 +65,7 @@ markov_sim_Y <- function(obj,
     names(fty) = c("target", "ft", "mt")
     
     #y
-    fty$target = rep(0, length(target))  # y(t)
+    fty$target = sample.int(obj@dim_num,length(target),replace = TRUE)-1  # y(t)
     names(fty$target) = target
     #ft
     configs = expand.grid(rep(list(0:c(obj@dim_num - 1)), length(nodes_without_target_vector)))
@@ -85,6 +85,7 @@ markov_sim_Y <- function(obj,
     values = matrix(0,
                     ncol = 1,
                     nrow = nrow(fty$mt))
+    values[,1] = sample.int(obj@dim_num,nrow(fty$mt),replace = TRUE)-1
     colnames(values) = "prob"
     fty$mt['prob'] = values
     fty$mt = as.data.table(fty$mt)
@@ -101,7 +102,7 @@ markov_sim_Y <- function(obj,
     
     Mts = matrix(NA, ncol = n, nrow = nrow(fty$mt)) # estimates of mt
     colnames(Mts) = as.character(1:n)
-    Mts = cbind(as.data.frame(fty$mt[, ..target]), Mts)
+    Mts = cbind(as.data.frame(fty$mt[, ..target],column_names=target), Mts)
     
     #setup for timer
     timer = Sys.time()
@@ -125,8 +126,6 @@ markov_sim_Y <- function(obj,
       y = fr$target
       ft = fr$ft # probability of P(X(t) |Y(t)=y,Y(<t)): probs of configurations of X
       mt = fr$mt[, ..target] # P(Y(t+1)|Y(t)=y,Y(<t)): vector of length n
-      Y = y
-      
       work = P_target[as.list(y), sum(prob * ft$prob), keyby = eval(target_cols)]
       index = sample.int(nrow(work), 1, prob = work$V1)
       mt[, 'prob'] = work$V1
@@ -184,7 +183,5 @@ markov_sim_Y <- function(obj,
   return(out)
 }
 
-#process = marginalized_runner(process, c('Y','X'), 1000)
-#50/10000
-##process@marg_sim$ft
-#process@trans_prob
+process = marginalized_runner(process, c('Y','X'), 1000)
+
