@@ -19,16 +19,12 @@ markov_sim_Y <- function(obj,
     condition_set - vector of nodes to condition by, NULL if no conditioning is applied
   "
   cat('Preparation for marginalized simulation...')
-  numb = obj@dim_num
-  
+
   if (length(intersect(obj@node_names, target)) < 1) {
     print("Target out of scope")
     return(NULL)
   }
-  target_parent_nodes = vector('list')
-  parent_without_target = vector('list')
-  nodes_without_target = vector('list')
-  nodes_not_parent = vector('list')
+
   nodes_without_target_vector = setdiff(obj@node_names, target)
   prob_cols = obj@prob_cols
   if (is.null(condition_set)) {
@@ -68,15 +64,15 @@ markov_sim_Y <- function(obj,
     fty$target = sample.int(obj@dim_num,length(target),replace = TRUE)-1  # y(t)
     names(fty$target) = target
     #ft
-    configs = expand.grid(rep(list(0:c(obj@dim_num - 1)), length(nodes_without_target_vector)))
-    colnames(configs) = nodes_without_target_vector
-    values = matrix(runif(nrow(configs)),
+    not_target_configurations = expand.grid(rep(list(0:c(obj@dim_num - 1)), length(nodes_without_target_vector)))
+    colnames(not_target_configurations) = nodes_without_target_vector
+    values = matrix(runif(nrow(not_target_configurations)),
                     ncol = 1,
-                    nrow = nrow(configs))
+                    nrow = nrow(not_target_configurations))
     values[, 1] = values[, 1] / sum(values)
     colnames(values) = "prob"
     
-    fty$ft = data.table(cbind(configs, values)) # P(X(t) |Y(t)=y,Y(<t))
+    fty$ft = data.table(cbind(not_target_configurations, values)) # P(X(t) |Y(t)=y,Y(<t))
     setkeyv(fty$ft, nodes_without_target_vector)
     fty$ft = data.frame(fty$ft)
     #mt
@@ -111,7 +107,7 @@ markov_sim_Y <- function(obj,
     
     #work
     target_cols = paste(target, '(t)', sep = "")
-    stepY <- function(fr, Py, P, configs, target, prob_cols) {
+    stepY <- function(fr, Py, P, not_target_configurations, target, prob_cols) {
       "
       Simulate step of markov obj with marginalized variables without conditioning
       --------------------
@@ -130,8 +126,8 @@ markov_sim_Y <- function(obj,
       index = sample.int(nrow(work), 1, prob = work$V1)
       mt[, 'prob'] = work$V1
       Y = unlist(as.vector(work[index, ..target_cols]))
-      ft_1 = P[as.list(c(Y, y)), sum(prob * ft$prob), by = eval(paste(configs, "(t)", sep =""))]
-      colnames(ft_1) = c(configs, "prob")
+      ft_1 = P[as.list(c(Y, y)), sum(prob * ft$prob), by = eval(paste(not_target_configurations, "(t)", sep =""))]
+      colnames(ft_1) = c(not_target_configurations, "prob")
       ft$prob = ft_1$prob / sum(ft_1$prob)
       
       fr$target = Y
@@ -154,7 +150,7 @@ markov_sim_Y <- function(obj,
       print_progress(t, n, timer)
       
     }
-    cat('\n', 'DONE')
+    cat(' ', 'DONE','\n')
     
   }
   else{
@@ -180,8 +176,14 @@ markov_sim_Y <- function(obj,
   out$ft = Fts
   out$mt = Mts
   out$target_name = target
+  out$sim_length = n
   return(out)
 }
+if (sys.nframe() == 0L) {
+  process = marginalized_runner(process, c('Y','X'), 1000)
+  
+  
+}
 
-process = marginalized_runner(process, c('Y','X'), 1000)
+
 

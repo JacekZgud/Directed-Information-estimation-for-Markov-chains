@@ -2,10 +2,8 @@
 library(dplyr)
 library(data.table)
 source("./structs/markov_process.R")
-source("./structs/stationary_distribution.R")
-source("./structs/markov_simulation_src.R")
-source("./structs/simulation_marginalized.R")
 source('./structs/information_calculation.R')
+
 node_dim = 3
 nodes = 3
 set.seed(1)
@@ -29,6 +27,8 @@ ParentStructure[2, 1] = 1
 #initialize class for markov_simulations
 process = markov_process_init(node_dim, nodes, ParentStructure, work_names)
 process@trans_prob
+
+#examples:
 process@trans_prob$X$prob_1 = c(0.05, 0.05, 0.95, 0.95)
 process@trans_prob$X$prob_0 = 1 - process@trans_prob$X$prob_1
 
@@ -93,14 +93,9 @@ n_2 = 10 ^ 3
 process = marginalized_runner(process, c('Y','Z'), n_2)
 
 process@trans_prob
+
+#calculate transfer entropy from V/target -----> target
 process = trans_entropy(process, c('Y','Z'), n_2=1000)
 
-process@trans_prob
 
-plot( process@marg_sim$ft[1, -c(1)],process@marg_sim$sim_target, pch = ".")
-plot(c(1:n_2), process@marg_sim$mt[1, -1], pch = ".")
-hist(process@marg_sim$ft[process@marg_sim$sim_target == 0], breaks = seq(0, 1, length.out = 10))
-hist(process@marg_sim$ft[process@marg_sim$sim_target == 1], breaks = seq(0, 1, length.out = 10))
-
-process@marg_sim$ft[,c(1:10)]
 

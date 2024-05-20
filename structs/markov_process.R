@@ -1,6 +1,10 @@
 # define class  markov_process
 setClassUnion("arrayORmatrix", c("matrix", "array"))
-
+require(data.table)
+require(dplyr)
+source("./structs/stationary_distribution.R")
+source("./structs/markov_simulation_src.R")
+source("./structs/simulation_marginalized.R")
 
 setClass(
   "markov_process",
@@ -137,7 +141,7 @@ Trans_prob = function(Nodenames, parent_struct, n, d) {
 }
 
 
-marginalized_runner <- function(obj, target = c(obj@node_names[1]), n_2) {
+marginalized_runner <- function(obj, target = c(obj@node_names[1]), n,printer=FALSE) {
   if (nrow(obj@trans_matrix_list)==0){
     obj@trans_matrix_list = trans_matrix(obj, list_form = TRUE)
   }
@@ -145,26 +149,28 @@ marginalized_runner <- function(obj, target = c(obj@node_names[1]), n_2) {
     obj@statio_prob = stationary_probability(obj)
   }
   
-  obj@marg_sim = markov_sim_Y(obj, n_2, target)
-  cat('\n','DONE')
-  
+  obj@marg_sim = markov_sim_Y(obj, n, target)
+  if (printer){
   for (i in target) {
-    print(table(obj@marg_sim$sim_target[, i])/n_2)
+    print(table(obj@marg_sim$sim_target[, i])/n)
     print(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
+  }
   }
   return(obj)
 }
 
-simulation_runner <- function(obj, m) {
+simulation_runner <- function(obj, m,printer=FALSE) {
   if (nrow(obj@statio_prob)==0)
     obj@statio_prob = stationary_probability(obj)
   
   obj@simulation = markov_sim(obj, m)
   cat('\n','DONE','\n')
-  
-  for (i in obj@node_names) {
-    print(table(obj@simulation[, i])/m)
-    print(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
+  if (printer){
+    for (i in obj@node_names) {
+      print(table(obj@simulation[, i])/m)
+      print(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
+    }
   }
+  
   return(obj)
 }
