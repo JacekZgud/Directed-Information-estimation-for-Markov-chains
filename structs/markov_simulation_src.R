@@ -21,8 +21,8 @@ markov_sim = function(obj, m) {
   XZY = matrix(nrow = m, ncol = obj@node_num)
   colnames(XZY) = obj@node_names
   State = rep(0, obj@node_num)
-  n=obj@dim_num
-  prob_columns = paste("prob", 0:( n- 1), sep = "_")
+  n = obj@dim_num
+  prob_columns = paste("prob", 0:(n - 1), sep = "_")
   
   Step = function(State,
                   TransitionProbabilities,
@@ -41,11 +41,13 @@ markov_sim = function(obj, m) {
   "
     NewState = numeric()
     for (vertex in node_names) {
-      Parents = (ParentStructure[vertex, ] == 1)
+      Parents = (ParentStructure[vertex,] == 1)
       ParentState = State[Parents]
       Prob = TransitionProbabilities[[vertex]]
-      if(as.double(sum(Parents)) > 0) Prob = Prob[as.list(ParentState), ..prob_columns]
-      else Prob = Prob[, ..prob_columns]
+      if (as.double(sum(Parents)) > 0)
+        Prob = Prob[as.list(ParentState), ..prob_columns]
+      else
+        Prob = Prob[, ..prob_columns]
       NewState[vertex] =  sample.int(n, 1, prob = Prob) - 1
     }
     return(NewState)
@@ -53,10 +55,8 @@ markov_sim = function(obj, m) {
   
   for (i in 1:m) {
     State = Step(State, obj@trans_prob, obj@node_names, obj@parent_struct)
-    XZY[i,] = State
+    XZY[i, ] = State
     print_progress(i, m, timer)
   }
   return(XZY)
 }
-
-

@@ -34,7 +34,7 @@ setClass(
     marg_sim = vector('list'),
     statio_prob = data.frame(),
     simulation = c()
-    )
+  )
 )
 
 markov_process_init <- function(n = 1,
@@ -151,10 +151,10 @@ marginalized_runner <- function(obj, target = c(obj@node_names[1]), n,printer=FA
   
   obj@marg_sim = markov_sim_Y(obj, n, target)
   if (printer){
-  for (i in target) {
-    print(table(obj@marg_sim$sim_target[, i])/n)
-    print(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
-  }
+    for (i in target) {
+      print(table(obj@marg_sim$sim_target[, i])/n)
+      print(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
+    }
   }
   return(obj)
 }

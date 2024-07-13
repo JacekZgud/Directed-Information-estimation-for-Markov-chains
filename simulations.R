@@ -47,7 +47,7 @@ process@trans_prob$Y$prob_0 = 1 - process@trans_prob$Y$prob_1
 
 process@statio_prob = stationary_probability(process)
 class(process@statio_prob)
-process@trans_matrix_list= trans_matrix(process, TRUE)
+process@trans_matrix_list = trans_matrix(process, TRUE)
 
 #------------------------------------------------------------------------
 #markov process simulation
@@ -90,12 +90,9 @@ chisq.test(XY.)$expected
 # simulate marginalized markov process
 n_2 = 10 ^ 3
 
-process = marginalized_runner(process, c('Y','Z'), n_2)
+process = marginalized_runner(process, c('Y', 'Z'), n = n_2)
 
 process@trans_prob
 
 #calculate transfer entropy from V/target -----> target
-process = trans_entropy(process, c('Y','Z'), n_2=1000)
-
-
-
+process = trans_entropy(process, c('Y', 'Z'), n = 1000)

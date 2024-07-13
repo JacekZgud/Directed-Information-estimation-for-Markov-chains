@@ -3,6 +3,7 @@
 # - mutual info
 # - transfer entropy
 require('data.table')
+source('./structs/helpers.R')
 
 entropy = function(vector, b = 2) {
   "
@@ -64,7 +65,7 @@ trans_entropy = function(obj,
   
   entropy_target_calc = function(index) {
     print_progress(index, end, time)
-    entropy(P_target[as.list(ys[index,]), sum(prob * ft[[as.character(index)]]), by =
+    entropy(P_target[as.list(ys[index, ]), sum(prob * ft[[as.character(index)]]), by =
                        eval(paste(target,
                                   rep("(t)", length(target)), sep = ""))]$V1)
   }
@@ -96,4 +97,3 @@ if (sys.nframe() == 0L) {
   process = marginalized_runner(process, node, n_2)
   process = trans_entropy(process, node, n = n_2)
 }
-
