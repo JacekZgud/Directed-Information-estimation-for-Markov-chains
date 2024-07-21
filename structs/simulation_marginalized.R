@@ -19,12 +19,12 @@ markov_sim_Y <- function(obj,
     condition_set - vector of nodes to condition by, NULL if no conditioning is applied
   "
   cat('Preparation for marginalized simulation...')
-
+  
   if (length(intersect(obj@node_names, target)) < 1) {
     print("Target out of scope")
     return(NULL)
   }
-
+  
   nodes_without_target_vector = setdiff(obj@node_names, target)
   prob_cols = obj@prob_cols
   if (is.null(condition_set)) {

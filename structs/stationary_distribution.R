@@ -54,7 +54,7 @@ prob_transition = function(x,
   "
   vec = c()
   for (node in names) {
-    parents = names[which(ParentStructure[node,] == 1)]
+    parents = names[which(ParentStructure[node, ] == 1)]
     Parents = paste(parents, "(t-1)", sep = "")
     ParentState = x[Parents]
     node_state = as.double(x[paste(node, "(t)", sep = "")])

@@ -19,7 +19,9 @@ setClass(
     trans_matrix_list = "data.frame",
     marg_sim = 'list',
     statio_prob = 'data.frame',
-    simulation = 'ANY'
+    simulation = 'ANY',
+    trans_entropy_table = 'data.frame',
+    trans_entropy = 'numeric'
   )
   ,
   prototype = c(
@@ -33,7 +35,9 @@ setClass(
     trans_matrix_list = data.frame(),
     marg_sim = vector('list'),
     statio_prob = data.frame(),
-    simulation = c()
+    simulation = c(),
+    trans_entropy_table = data.frame(),
+    trans_entropy = NA_real_
   )
 )
 
@@ -87,7 +91,7 @@ markov_process_init <- function(n = 1,
 
 # define structure for markov chain
 
-Trans_prob = function(Nodenames, parent_struct, n, d) {
+Trans_prob <- function(Nodenames, parent_struct, n, d) {
   "
   Assign conditional probability for each vertice
   -----------------------
@@ -99,20 +103,19 @@ Trans_prob = function(Nodenames, parent_struct, n, d) {
   Returns:
     3 dimensional array of conditional probabilities
   "
-  set.seed(1)
   TransitionProbabilities = vector("list", c(d))
   names(TransitionProbabilities) = Nodenames
   prob_vector_names = paste("prob", c(0:(n - 1)), sep = '_')
   NoParents = rowSums(parent_struct)
   for (node in Nodenames) {
-    parents = Nodenames[which(parent_struct[node,] == 1)]
+    parents = Nodenames[which(parent_struct[node, ] == 1)]
     n0_parents = NoParents[parents]
     temp = expand.grid(rep(list(0:c(n - 1)), length(n0_parents)))
     colnames(temp) = parents
     
-    if(NoParents[[node]] !=0){
+    if (NoParents[[node]] != 0) {
       prob_matr = matrix(
-        sample.int(10^3,n * nrow(temp)),
+        sample.int(10 ^ 3, n * nrow(temp)),
         nrow = nrow(temp),
         ncol = n,
         byrow = TRUE
@@ -124,16 +127,14 @@ Trans_prob = function(Nodenames, parent_struct, n, d) {
       setkeyv(TransitionProbabilities[[node]], parents)
     }
     else{
-      prob_matr = matrix(
-        runif(n),
-        nrow = 1,
-        ncol = n,
-        byrow = TRUE
-      )
+      prob_matr = matrix(runif(n),
+                         nrow = 1,
+                         ncol = n,
+                         byrow = TRUE)
       colnames(prob_matr) = prob_vector_names
       prob_matr = t(apply(prob_matr, 1, function(x)
         x / sum(x)))
-      TransitionProbabilities[[node]] = data.table( prob_matr)
+      TransitionProbabilities[[node]] = data.table(prob_matr)
       
     }
   }
@@ -141,33 +142,37 @@ Trans_prob = function(Nodenames, parent_struct, n, d) {
 }
 
 
-marginalized_runner <- function(obj, target = c(obj@node_names[1]), n,printer=FALSE) {
-  if (nrow(obj@trans_matrix_list)==0){
-    obj@trans_matrix_list = trans_matrix(obj, list_form = TRUE)
-  }
-  if (nrow(obj@statio_prob)==0){
-    obj@statio_prob = stationary_probability(obj)
-  }
-  
-  obj@marg_sim = markov_sim_Y(obj, n, target)
-  if (printer){
-    for (i in target) {
-      print(table(obj@marg_sim$sim_target[, i])/n)
-      print(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
+marginalized_runner <-
+  function(obj,
+           target = c(obj@node_names[1]),
+           n = 1000,
+           printer = FALSE) {
+    if (nrow(obj@trans_matrix_list) == 0) {
+      obj@trans_matrix_list = trans_matrix(obj, list_form = TRUE)
     }
+    if (nrow(obj@statio_prob) == 0) {
+      obj@statio_prob = stationary_probability(obj)
+    }
+    
+    obj@marg_sim = markov_sim_Y(obj, n, target)
+    if (printer) {
+      for (i in target) {
+        print(table(obj@marg_sim$sim_target[, i]) / n)
+        print(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
+      }
+    }
+    return(obj)
   }
-  return(obj)
-}
 
-simulation_runner <- function(obj, m,printer=FALSE) {
-  if (nrow(obj@statio_prob)==0)
+simulation_runner <- function(obj, m = 1000, printer = FALSE) {
+  if (nrow(obj@statio_prob) == 0)
     obj@statio_prob = stationary_probability(obj)
   
   obj@simulation = markov_sim(obj, m)
-  cat('\n','DONE','\n')
-  if (printer){
+  cat('\n', 'DONE', '\n')
+  if (printer) {
     for (i in obj@node_names) {
-      print(table(obj@simulation[, i])/m)
+      print(table(obj@simulation[, i]) / m)
       print(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
     }
   }

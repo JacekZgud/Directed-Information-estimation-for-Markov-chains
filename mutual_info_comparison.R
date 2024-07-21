@@ -60,14 +60,14 @@ plot(
   ylim = c(0, 1),
   type = 'line',
   col = 'green',
-  xlab = 'a',
+  xlab = 'a (a=b)',
   ylab = 'Information'
 )
 legend(
   "topleft",
   legend = c("Transfer entropy",
-             'mutual info|(t-1)',
-             'AY polani info'),
+             'M.Informaion|(t-1)',
+             'Information Flow'),
   pch = "|",
   col = c("green", "red", 'blue')
 )
@@ -91,23 +91,23 @@ Vectorize(mutual_info)(prob) > infos
 
 
 
-dkl = function(P,Q){
-  P=as.vector(P)
-  Q=as.vector(Q)
-  sum(P*log(P/Q,base=2))
+dkl = function(P, Q) {
+  P = as.vector(P)
+  Q = as.vector(Q)
+  sum(P * log(P / Q, base = 2))
 }
 
-dkl_comp = function(x,inv=FALSE){
+dkl_comp = function(x, inv = FALSE) {
   x = as.numeric(x)
-  if (inv){
-    P = c(1/2,1/2)
-    Q = c(x,1-x)
+  if (inv) {
+    P = c(1 / 2, 1 / 2)
+    Q = c(x, 1 - x)
   }
   else{
-    Q = c(1/2,1/2)
-    P = c(x,1-x)
+    Q = c(1 / 2, 1 / 2)
+    P = c(x, 1 - x)
   }
-  sum(P*log(P/Q,base=2))
+  sum(P * log(P / Q, base = 2))
 }
 
 dkl_comp_fixed_inv_vec <- Vectorize(function(x) {
@@ -118,12 +118,25 @@ dkl_comp_vec <- Vectorize(function(x) {
 })
 
 # Plot the curve using the modified vectorized function
-xes = c(0.001,0.999)
-curve(dkl_comp_fixed_inv_vec, from = xes[1], to = xes[2],xlab='p',ylab='',col='red')
-curve(dkl_comp_vec, from = xes[1], to = xes[2],add=TRUE,col='blue')
+xes = c(0.001, 0.999)
+curve(
+  dkl_comp_fixed_inv_vec,
+  from = xes[1],
+  to = xes[2],
+  xlab = 'p',
+  ylab = '',
+  col = 'red'
+)
+curve(
+  dkl_comp_vec,
+  from = xes[1],
+  to = xes[2],
+  add = TRUE,
+  col = 'blue'
+)
 legend(
   "topleft",
-  legend = c("D_Q","D_P"),
+  legend = c("D_Q", "D_P"),
   pch = "|",
   col = c("red", 'blue')
 )

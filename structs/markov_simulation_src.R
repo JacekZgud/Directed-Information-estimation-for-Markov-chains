@@ -18,8 +18,8 @@ markov_sim = function(obj, m) {
     Simulation of markov process of lenght m.
   "
   timer = Sys.time()
-  XZY = matrix(nrow = m, ncol = obj@node_num)
-  colnames(XZY) = obj@node_names
+  simulation = matrix(nrow = m, ncol = obj@node_num)
+  colnames(simulation) = obj@node_names
   State = rep(0, obj@node_num)
   n = obj@dim_num
   prob_columns = paste("prob", 0:(n - 1), sep = "_")
@@ -55,8 +55,8 @@ markov_sim = function(obj, m) {
   
   for (i in 1:m) {
     State = Step(State, obj@trans_prob, obj@node_names, obj@parent_struct)
-    XZY[i, ] = State
+    simulation[i, ] = State
     print_progress(i, m, timer)
   }
-  return(XZY)
+  return(simulation)
 }

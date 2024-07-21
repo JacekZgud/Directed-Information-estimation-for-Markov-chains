@@ -67,26 +67,6 @@ W = process@simulation[, "W"]
 process@trans_prob
 
 #-------------------------------------------------------------------------
-# Stationary distribution of X
-
-table(Z, Y) / m
-
-
-XY.Z0 = table(X[Z == 0], Y[Z == 0])
-XY.Z0
-mosaicplot(XY.Z0)
-chisq.test(XY.Z0)$expected
-XY.Z1 = table(X[Z == 1], Y[Z == 1])
-XY.Z1
-mosaicplot(XY.Z1)
-chisq.test(XY.Z1)$expected
-
-XY. = table(X, Y)
-XY.
-mosaicplot(XY.)
-chisq.test(XY.)$expected
-
-
 # simulate marginalized markov process
 n_2 = 10 ^ 3
 
@@ -95,4 +75,4 @@ process = marginalized_runner(process, c('Y', 'Z'), n = n_2)
 process@trans_prob
 
 #calculate transfer entropy from V/target -----> target
-process = trans_entropy(process, c('Y', 'Z'), n = 1000)
+process = trans_entropy(process, c('Y', 'Z'), n = n_2)
