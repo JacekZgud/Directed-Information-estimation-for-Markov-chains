@@ -6,19 +6,26 @@ source("./structs/stationary_distribution.R")
 source("./structs/markov_simulation_src.R")
 source("./structs/simulation_marginalized.R")
 source('./structs/information_calculation.R')
+
+# parametrise the code
 node_dim = 2
 nodes = 2
+work_names = c("X", "Y")
+
+
 #define parent structure
 ParentStructure = matrix(nrow = nodes, ncol = nodes, data = 0)
-work_names = c("X", "Y")
 rownames(ParentStructure) = colnames(ParentStructure) = work_names
 ParentStructure[2, 1] = 1
 ParentStructure[1, 1] = 1
 
 prob = seq(from = 1 / 2,
            to = 0.99999,
-           length.out = 20)
-info_estimator = function(a, par_struct, n_2 = 500) {
+           length.out = 50)
+
+# define function calculating transfer_entropy estimator
+
+info_estimator = function(a, par_struct, n_2 = 1000) {
   proc = markov_process_init(node_dim, nodes, par_struct, work_names)
   proc@trans_prob$X$prob_1 = c(1 - a, a)
   proc@trans_prob$X$prob_0 = 1 - proc@trans_prob$X$prob_1
@@ -31,9 +38,11 @@ info_estimator = function(a, par_struct, n_2 = 500) {
   
   return(proc@trans_entropy)
 }
-infos = Vectorize(info_estimator, 'a')(a = prob, ParentStructure)
-info_estimator(0.999999, ParentStructure, n_2 = 1000)
 
+infos = Vectorize(info_estimator, 'a')(a = prob, ParentStructure)
+
+
+# plot the results 
 
 h = function(b) {
   1 - b * log(b / (1 / 2), base = 2) - (1 - b) * log((1 - b) / (1 / 2), base =
@@ -66,7 +75,7 @@ plot(
 legend(
   "topleft",
   legend = c("Transfer entropy",
-             'M.Informaion|(t-1)',
+             'M.Information|(t-1)',
              'Information Flow'),
   pch = "|",
   col = c("green", "red", 'blue')
@@ -87,10 +96,12 @@ curve(
   add = TRUE,
   col = 'red'
 )
+
+# check if the results are correct 
 Vectorize(mutual_info)(prob) > infos
 
 
-
+#########################################################################################################
 dkl = function(P, Q) {
   P = as.vector(P)
   Q = as.vector(Q)

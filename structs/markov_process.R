@@ -169,7 +169,7 @@ simulation_runner <- function(obj, m = 1000, printer = FALSE) {
     obj@statio_prob = stationary_probability(obj)
   
   obj@simulation = markov_sim(obj, m)
-  cat('\n', 'DONE', '\n')
+  cat('DONE', '\n')
   if (printer) {
     for (i in obj@node_names) {
       print(table(obj@simulation[, i]) / m)

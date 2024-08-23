@@ -1,5 +1,5 @@
 # Markov_simulations
-Code to simulate the specific class of Markov chains and calculate relevant information theory-based measures. The code is oriented around `markov_process` S4 class object. 
+The goal of this collection is to simulate the specific class of Markov chains and calculate relevant information theory-based measures. The code is oriented around `markov_process` S4 class object. 
 
 ## Current Functionalities
 1. Markov chain simulation

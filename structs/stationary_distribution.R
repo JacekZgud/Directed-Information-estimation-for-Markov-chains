@@ -14,7 +14,8 @@ trans_matrix = function(obj, list_form = FALSE) {
   Returns:
     transition matrix
   "
-  cat('calculating transition matrix...')
+  if (list_form) cat('Calculating transition matrix... ')
+  else cat('Calculating list form of transition matrix... ')
   
   n = obj@dim_num
   d = obj@node_num

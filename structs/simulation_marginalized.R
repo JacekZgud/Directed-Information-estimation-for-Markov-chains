@@ -137,6 +137,7 @@ markov_sim_Y <- function(obj,
     }
     
     #simulation loop
+    cat('Simulating marginalized chain...','\n')
     for (t in 1:n) {
       fty = stepY(fty,
                   Py,
