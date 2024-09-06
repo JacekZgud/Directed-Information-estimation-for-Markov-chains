@@ -23,6 +23,7 @@ prob = seq(from = 1 / 2,
            to = 0.99999,
            length.out = 50)
 
+
 # define function calculating transfer_entropy estimator
 
 info_estimator = function(a, par_struct, n_2 = 1000) {
@@ -32,17 +33,23 @@ info_estimator = function(a, par_struct, n_2 = 1000) {
   
   proc@trans_prob$Y$prob_1 = c(1 - a, a)
   proc@trans_prob$Y$prob_0 = 1 - proc@trans_prob$Y$prob_1
-  print(proc@trans_prob)
-  
-  proc = trans_entropy(proc, c('Y'), n = n_2)
+
+  proc = (trans_entropy(proc, c('Y'), n = n_2))
   
   return(proc@trans_entropy)
 }
 
-infos = Vectorize(info_estimator, 'a')(a = prob, ParentStructure)
+info_estimator(1 / 2, ParentStructure)
+infos = c()
+n = 10
+for (i in c(1:n)) {
+  infos = infos + Vectorize(info_estimator, 'a')(a = prob, ParentStructure)
+  print_progress(i,n)
+}
+infos = infos / n
 
 
-# plot the results 
+# plot the results
 
 h = function(b) {
   1 - b * log(b / (1 / 2), base = 2) - (1 - b) * log((1 - b) / (1 / 2), base =
@@ -97,7 +104,7 @@ curve(
   col = 'red'
 )
 
-# check if the results are correct 
+# check if the results are correct
 Vectorize(mutual_info)(prob) > infos
 
 

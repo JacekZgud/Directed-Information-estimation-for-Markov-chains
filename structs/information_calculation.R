@@ -12,9 +12,6 @@ entropy = function(vector, b = 2) {
   Args:
     vector - vector of probabilities
   "
-  #if (sum(vector) != 1){
-  #  cat('Vector is not a probability vector')
-  #}
   vector = vector[(vector != 0)]
   out = -sum(vector * log(vector, base = b))
   
@@ -30,10 +27,8 @@ trans_entropy = function(obj,
     "
   
   # perform marginalized simulation for target variable or check if it has been performed earlier
-  
   if ((length(obj@marg_sim) == 0) |
-      (length(setdiff(obj@marg_sim$target_name, target) > 0) |
-       length(setdiff(target, obj@marg_sim$target_name) > 0))) {
+      !all(target %in% obj@marg_sim$target_name)) {
     obj =  marginalized_runner(obj, target, n)
   }
   
@@ -68,7 +63,7 @@ trans_entropy = function(obj,
                                                                    ""))]$V1 * origin_prob$V1)
   
   # start estimation of entropy p(target(t)|target(<t))
-  cat('Calculating entropies...\n')
+  message('Calculating entropies...')
   
   end = obj@marg_sim$sim_length
   time = Sys.time()
@@ -107,7 +102,9 @@ trans_entropy = function(obj,
   
   
   
-  cat(
+  message(
+    '\n###################################################\n',
+    '\n              Transfer entropy results             \n',
     '\n---------------------------------------------------\n',
     'Target:',
     target,
@@ -118,10 +115,10 @@ trans_entropy = function(obj,
     'Transfer_entropy:',
     obj@trans_entropy,
     '\n',
-    'Entropy given all past states:',
+    'Entropy p(y(t)|x(t-1),y(t-1)):',
     target_entropy,
     "\n",
-    'Entropy given only target :',
+    'Entropy p(y(t)|y(<t)) :',
     info_niem,
     '\n'
     

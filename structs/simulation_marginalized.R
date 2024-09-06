@@ -18,12 +18,12 @@ markov_sim_Y <- function(obj,
     target - vector of variable names to be simulated
     condition_set - vector of nodes to condition by, NULL if no conditioning is applied
   "
-  cat('Preparation for marginalized simulation...')
   
   if (length(intersect(obj@node_names, target)) < 1) {
-    print("Target out of scope")
+    message("Target out of scope")
     return(NULL)
   }
+  message('Preparation for marginalized simulation...',appendLF = FALSE)
   
   nodes_without_target_vector = setdiff(obj@node_names, target)
   prob_cols = obj@prob_cols
@@ -102,7 +102,7 @@ markov_sim_Y <- function(obj,
     
     #setup for timer
     timer = Sys.time()
-    cat(' DONE', '\n')
+    message('DONE')
     
     
     #work
@@ -137,7 +137,7 @@ markov_sim_Y <- function(obj,
     }
     
     #simulation loop
-    cat('Simulating marginalized chain...','\n')
+    message('Simulating marginalized chain...')
     for (t in 1:n) {
       fty = stepY(fty,
                   Py,
@@ -151,7 +151,7 @@ markov_sim_Y <- function(obj,
       print_progress(t, n, timer)
       
     }
-    cat(' ', 'DONE','\n')
+    message('DONE')
     
   }
   else{
@@ -169,7 +169,7 @@ markov_sim_Y <- function(obj,
       return(fr)
     }
     
-    print("Conditioning not implemented yet")
+    message("Conditioning not implemented yet")
     fty = NULL
   }
   out = vector('list')
@@ -180,6 +180,8 @@ markov_sim_Y <- function(obj,
   out$sim_length = n
   return(out)
 }
+
+
 if (sys.nframe() == 0L) {
   process = marginalized_runner(process, c('Y','X'), 1000)
   

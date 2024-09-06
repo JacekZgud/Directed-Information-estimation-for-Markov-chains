@@ -14,8 +14,8 @@ trans_matrix = function(obj, list_form = FALSE) {
   Returns:
     transition matrix
   "
-  if (list_form) cat('Calculating transition matrix... ')
-  else cat('Calculating list form of transition matrix... ')
+  if (list_form) message('Calculating transition matrix... ')
+  else message('Calculating list form of transition matrix... ')
   
   n = obj@dim_num
   d = obj@node_num
@@ -24,7 +24,7 @@ trans_matrix = function(obj, list_form = FALSE) {
                       paste(obj@node_names, "(t-1)", sep = ""))
   Trans['prob'] = apply(Trans, 1, function(x)
     prob_transition(x, obj@node_names, obj@parent_struct, obj@trans_prob))
-  cat('DONE', '\n')
+  message('DONE', '\n')
   if (list_form) {
     return(Trans)
   }

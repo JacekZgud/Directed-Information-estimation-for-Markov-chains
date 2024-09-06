@@ -18,6 +18,9 @@ setClass(
     trans_matrix = "ANY",
     trans_matrix_list = "data.frame",
     marg_sim = 'list',
+    marg_sim.ft = "arrayORmatrix" ,
+    marg_sim.target_name = "vector" ,
+    marg_sim.sim_target = "arrayORmatrix" ,
     statio_prob = 'data.frame',
     simulation = 'ANY',
     trans_entropy_table = 'data.frame',
@@ -33,7 +36,11 @@ setClass(
     trans_prob = list(),
     trans_matrix = matrix(),
     trans_matrix_list = data.frame(),
-    marg_sim = vector('list'),
+    marg_sim = list(
+      ft = array(),
+      target_name = c(NA_character_),
+      sim_target = array()
+    ),
     statio_prob = data.frame(),
     simulation = c(),
     trans_entropy_table = data.frame(),
@@ -157,8 +164,8 @@ marginalized_runner <-
     obj@marg_sim = markov_sim_Y(obj, n, target)
     if (printer) {
       for (i in target) {
-        print(table(obj@marg_sim$sim_target[, i]) / n)
-        print(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
+        message(table(obj@marg_sim$sim_target[, i]) / n)
+        message(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
       }
     }
     return(obj)
@@ -169,11 +176,11 @@ simulation_runner <- function(obj, m = 1000, printer = FALSE) {
     obj@statio_prob = stationary_probability(obj)
   
   obj@simulation = markov_sim(obj, m)
-  cat('DONE', '\n')
+  message('DONE')
   if (printer) {
     for (i in obj@node_names) {
-      print(table(obj@simulation[, i]) / m)
-      print(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
+      message(table(obj@simulation[, i]) / m)
+      message(data.table(obj@statio_prob)[, sum(statio_prob), by = eval(i)])
     }
   }
   
