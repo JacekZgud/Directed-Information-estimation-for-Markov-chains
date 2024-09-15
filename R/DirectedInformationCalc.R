@@ -69,7 +69,7 @@ trans_entropy = function(obj,
   # final transfer entropy value
 
   table <- data.frame(
-    target = target,
+    target = toString(target),
     origin = c(paste(
       nodes_without_target_vector, collapse = ' '
     )),
