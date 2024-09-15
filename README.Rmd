@@ -1,6 +1,43 @@
-# This is a R file that represents all functionalities of the repository.
+---
+output: github_document
+---
 
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# Markov.dir.info
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of this collection is to simulate the specific class of Markov chains and calculate relevant information theory-based measures. The code is oriented around `MarkovProcess` S4 class object.
+## Installation
+
+You can install the development version of Markov.dir.info like so:
+
+``` r
+install_github("JacekZgud/Directed-Information-estimation-for-Markov-chains")
+```
+
+### Comparison to Ay Polani information flow using an example from their article.
+Script for it may be found in `mutual_info_comparison.R` followed by some other visualisations.
+
+
+## Example
+
+This is a basic example which shows you how to use the library:
+
+```{r example}
 library(Markov.dir.info)
+## basic example code
 
 # parametrise the code
 node_dim = 3
@@ -59,3 +96,8 @@ process@marg_sim
 
 #calculate transfer entropy from V/target -----> target
 process = trans_entropy(process, c('Y', 'Z'), sim.length = n_2)
+
+```
+
+
+

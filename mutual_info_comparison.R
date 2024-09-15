@@ -1,11 +1,5 @@
 # example
-library(dplyr)
-library(data.table)
-source("./structs/markov_process.R")
-source("./structs/stationary_distribution.R")
-source("./structs/markov_simulation_src.R")
-source("./structs/simulation_marginalized.R")
-source('./structs/information_calculation.R')
+library(Markov.dir.info)
 
 # parametrise the code
 node_dim = 2
@@ -27,24 +21,23 @@ prob = seq(from = 1 / 2,
 # define function calculating transfer_entropy estimator
 
 info_estimator = function(a, par_struct, n_2 = 1000) {
-  proc = markov_process_init(node_dim, nodes, par_struct, work_names)
+  proc = MarkovProcess(node_dim, nodes, par_struct, work_names)
   proc@trans_prob$X$prob_1 = c(1 - a, a)
   proc@trans_prob$X$prob_0 = 1 - proc@trans_prob$X$prob_1
-  
+
   proc@trans_prob$Y$prob_1 = c(1 - a, a)
   proc@trans_prob$Y$prob_0 = 1 - proc@trans_prob$Y$prob_1
 
-  proc = (trans_entropy(proc, c('Y'), n = n_2))
-  
+  proc = suppressMessages(trans_entropy(proc, c('Y'),n_2))
+
   return(proc@trans_entropy)
 }
 
-info_estimator(1 / 2, ParentStructure)
-infos = c()
-n = 10
+#info_estimator(1 / 2, ParentStructure)
+infos = rep(0,length(prob))
+n = 1
 for (i in c(1:n)) {
   infos = infos + Vectorize(info_estimator, 'a')(a = prob, ParentStructure)
-  print_progress(i,n)
 }
 infos = infos / n
 
@@ -76,7 +69,7 @@ plot(
   ylim = c(0, 1),
   type = 'line',
   col = 'green',
-  xlab = 'a (a=b)',
+  xlab = 'a',
   ylab = 'Information'
 )
 legend(
@@ -103,6 +96,7 @@ curve(
   add = TRUE,
   col = 'red'
 )
+
 
 # check if the results are correct
 Vectorize(mutual_info)(prob) > infos
