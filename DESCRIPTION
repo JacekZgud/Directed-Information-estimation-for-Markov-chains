@@ -1,0 +1,16 @@
+Package: Markov.dir.info
+Title: Directed Information estimation for Markov chains
+Version: 0.0.1
+Authors@R: 
+    person("Jacek", "Zgud", , "jacek.zgud2@gmail.com", role = c("aut", "cre"))
+Description: The package allows user to estimate directed information between nodes of multivariate Markov process.
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports: 
+  dplyr (>= 1.0.10),
+  data.table (>= 1.14.6)
+Depends: 
+  R (>= 4.2.2)
