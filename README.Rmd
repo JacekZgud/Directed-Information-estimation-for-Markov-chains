@@ -19,15 +19,17 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 The goal of this collection is to simulate the specific class of Markov chains and calculate relevant information theory-based measures. The code is oriented around `MarkovProcess` S4 class object.
+
 ## Installation
 
-You can install the development version of Markov.dir.info like so:
+You can install the development version of `Markov.dir.info like` so:
 
 ``` r
 install_github("JacekZgud/Directed-Information-estimation-for-Markov-chains")
 ```
 
 ### Comparison to Ay Polani information flow using an example from their article.
+
 Script for it may be found in `mutual_info_comparison.R` followed by some other visualisations.
 
 
@@ -35,7 +37,6 @@ Script for it may be found in `mutual_info_comparison.R` followed by some other 
 
 This is a basic example which shows you how to use the library:
 
-<<<<<<< HEAD
 ```{r example,message=FALSE}
 library(Markov.dir.info)
 
