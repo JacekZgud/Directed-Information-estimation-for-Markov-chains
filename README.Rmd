@@ -22,7 +22,7 @@ The goal of this collection is to simulate the specific class of Markov chains a
 
 ## Installation
 
-You can install the development version of `Markov.dir.info like` so:
+You can install the development version of `Markov.dir.info` like so:
 
 ``` r
 install_github("JacekZgud/Directed-Information-estimation-for-Markov-chains")
@@ -35,9 +35,11 @@ Script for it may be found in `mutual_info_comparison.R` followed by some other 
 
 ## Example
 
-This is a basic example which shows you how to use the library:
+This is a basic example which shows you how to use the library.
 
-```{r example,message=FALSE}
+### Initializing `MarkovProcess` class:
+
+```{r definition example,message=FALSE}
 library(Markov.dir.info)
 
 # parametrise the code
@@ -66,17 +68,26 @@ process@trans_prob
 process2 = MarkovProcess(node_dim, nodes, ParentStructure, work_names)
 process2@trans_prob$X$prob_0 = c(0.05, 0.05, 0.90, 0.90, 0.05, 0.05, 0.90, 0.90, 0.1)
 process2@trans_prob$X$prob_1 = c(0.90, 0.90, 0.05, 0.05, 0.90, 0.90, 0.05, 0.05, 0.1)
-process2@trans_prob$X$prob_2 = 1 - process@trans_prob$X$prob_1 -  process@trans_prob$X$prob_0
+process2@trans_prob$X$prob_2 = c(0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.8) 
 process2@trans_prob$X
 
 
+```
 
+### Calculating transition matrix and stationary probability
+
+```{r statio example, message=FALSE}
 #------------------------------------------------------------------------
 # transition matrix
 
 process = stationary.probability(process)
 
 process = trans.matrix(process)
+```
+
+### Calculate transfer entropy
+
+```{r trans entropy example,message=FALSE}
 
 #------------------------------------------------------------------------
 #markov process simulation

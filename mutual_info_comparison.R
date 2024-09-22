@@ -15,7 +15,7 @@ ParentStructure[1, 1] = 1
 
 prob = seq(from = 1 / 2,
            to = 0.99999,
-           length.out = 50)
+           length.out =20)
 
 
 # define function calculating transfer_entropy estimator
@@ -35,13 +35,13 @@ info_estimator = function(a, par_struct, n_2 = 1000) {
 
 #info_estimator(1 / 2, ParentStructure)
 infos = rep(0,length(prob))
-n = 1
+n = 100
 for (i in c(1:n)) {
   infos = infos + Vectorize(info_estimator, 'a')(a = prob, ParentStructure)
 }
 infos = infos / n
 
-
+plot(infos)
 # plot the results
 
 h = function(b) {
