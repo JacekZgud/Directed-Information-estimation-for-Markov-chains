@@ -56,7 +56,7 @@ trans_entropy = function(obj,
   # entropy estimator p(y(t)|y(<t))
   entropy_target_calc <- function(index) {
     print_progress(index, end, time)
-    entropy(P_target[as.list(ys[index-1, ]), sum(prob * ft[[as.character(index)]]), by =
+    entropy(P_target[as.list(ys[index, ]), sum(prob * ft[[as.character(index)]]), by =
                        eval(paste(target,
                                   rep("(t)", length(target)), sep = ""))]$V1)
   }

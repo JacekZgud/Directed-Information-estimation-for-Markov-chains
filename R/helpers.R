@@ -17,7 +17,7 @@ print_progress <-
       "/",
       total,
       "), ",
-      difftime(Sys.time(), start_time, units = "secs"),
+      round(difftime(Sys.time(), start_time, units = "secs"),2),
       appendLF = FALSE
     )
     flush.console()
